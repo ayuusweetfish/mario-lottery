@@ -7,7 +7,7 @@ W=240
 H=136
 
 n_rounds=4
-cur_round=0
+cur_round=1
 
 -- 0: round init
 -- 1: running
@@ -39,15 +39,52 @@ function round_init_screen(t)
 	cls(0)
 	spr_c(0,W*0.382,H*0.5,2,2)
 	print_c('x',W/2,H/2,12,2)
-	print_c(tostring(n_rounds-cur_round),W*0.618,H/2,12,2)
+	print_c(tostring(n_rounds-cur_round+1),W*0.618,H/2,12,2)
 
 	if t>=ROUND_INIT_DUR then
 		change_scene(1)
 	end
 end
 
+requested_jump=nil
+
 function running_screen(t)
-	cls(8)
+	-- Button #4 (P1's A button)
+	-- Mapped to keyboard Z by default
+	if btnp(4) then requested_jump=time() end
+
+	cls(10)
+	if requested_jump then
+		cls(11)
+		if time()-requested_jump>=1000 then
+			requested_jump=nil
+			change_scene(2)
+		end
+	end
+end
+
+lottery_outcome=-1
+
+function lottery_screen(t)
+	cls(12)
+	if t<=2000 then
+		lottery_outcome=math.random(0,999)
+	elseif t<=3000 then
+		lottery_outcome=
+		  (lottery_outcome-lottery_outcome%100)+
+				math.random(0,99)
+	elseif t<=4000 then
+		lottery_outcome=
+		  (lottery_outcome-lottery_outcome%10)+
+				math.random(0,9)
+	else
+		if btnp(4) then
+			cur_round=cur_round+1
+			change_scene(0)
+		end
+	end
+	print_c(string.format('%03d',lottery_outcome),
+	        W/2,H/2,15,4)
 end
 
 function TIC()
@@ -56,6 +93,8 @@ function TIC()
 		round_init_screen(t)
 	elseif cur_scene == 1 then
 		running_screen(t)
+	elseif cur_scene == 2 then
+		lottery_screen(t)
 	end
 end
 
