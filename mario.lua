@@ -9,6 +9,21 @@ H=136
 n_rounds=4
 cur_round=1
 
+sprites={
+	run1=0,
+	run2=2,
+	jump=4,
+	mushroom=6,
+	ground=32,
+	brick=34,
+	qmark1=36,
+	qmark2=38,
+	qmark3=40,
+	cloud=64,
+	bush=68,
+	hill=72
+}
+
 -- 0: round init
 -- 1: running
 -- 2: lottery
@@ -25,7 +40,7 @@ function change_scene(id)
 end
 
 function spr_c(id,x,y,w,h,keyc)
-	spr(id,x-w*4,y-h*4,keyc or 6,
+	spr(sprites[id],x-w*4,y-h*4,keyc or 6,
 	    1,0,0,w,h)
 end
 
@@ -37,7 +52,7 @@ end
 
 function round_init_screen(t)
 	cls(0)
-	spr_c(6,W*0.382,H*0.5,2,2)
+	spr_c('mushroom',W*0.382,H*0.5,2,2)
 	print_c('x',W/2,H/2,7,2)
 	print_c(tostring(n_rounds-cur_round+1),W*0.618,H/2,7,2)
 
@@ -54,7 +69,13 @@ function running_screen(t)
 	if btnp(4) then requested_jump=time() end
 
 	cls(12)
-	if requested_jump then
+	if not requested_jump then
+		if (t//250)%2 == 0 then
+			spr_c('run1',W/2,H/2,2,2)
+		else
+			spr_c('run2',W/2,H/2,2,2)
+		end
+	else
 		cls(13)
 		if time()-requested_jump>=1000 then
 			requested_jump=nil
