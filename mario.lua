@@ -31,15 +31,15 @@ end
 
 function print_c(text,x,y,colour,scale)
 	scale=scale or 1
-	local w=print(text,999,999,colour,false,scale,true)
-	print(text,x-w//2,y-(6*scale)//2,colour,false,scale,true)
+	local w=print(text,999,999,colour,true,scale)
+	print(text,x-w//2,y-(6*scale)//2,colour,true,scale)
 end
 
 function round_init_screen(t)
 	cls(0)
 	spr_c(0,W*0.382,H*0.5,2,2)
-	print_c('x',W/2,H/2,12,2)
-	print_c(tostring(n_rounds-cur_round+1),W*0.618,H/2,12,2)
+	print_c('x',W/2,H/2,7,2)
+	print_c(tostring(n_rounds-cur_round+1),W*0.618,H/2,7,2)
 
 	if t>=ROUND_INIT_DUR then
 		change_scene(1)
@@ -53,9 +53,9 @@ function running_screen(t)
 	-- Mapped to keyboard Z by default
 	if btnp(4) then requested_jump=time() end
 
-	cls(10)
+	cls(12)
 	if requested_jump then
-		cls(11)
+		cls(13)
 		if time()-requested_jump>=1000 then
 			requested_jump=nil
 			change_scene(2)
@@ -66,7 +66,7 @@ end
 lottery_outcome=-1
 
 function lottery_screen(t)
-	cls(12)
+	cls(7)
 	if t<=2000 then
 		lottery_outcome=math.random(0,999)
 	elseif t<=3000 then
@@ -84,7 +84,7 @@ function lottery_screen(t)
 		end
 	end
 	print_c(string.format('%03d',lottery_outcome),
-	        W/2,H/2,15,4)
+	        W/2,H/2,0,4)
 end
 
 function TIC()
@@ -116,6 +116,6 @@ end
 -- </SFX>
 
 -- <PALETTE>
--- 000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57
+-- 000:0000001d2b537e2553008751ab52365f574fc2c3c7fff1e8ff004dffa300ffec2700e43629adff83769cff77a8ffccaa
 -- </PALETTE>
 
