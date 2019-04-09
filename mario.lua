@@ -62,28 +62,104 @@ function round_init_screen(t)
 end
 
 requested_jump=nil
+dur_per_pixel=12
+bias=0
+block={}
+for i=1,6 do 
+	block[i]={pos=W/2+(i-1)*48,frame=0}
+end
+cloud_pos=224
+grass={}
+mount={}
+onjump=nil
 
+function paint(t)
+    for i=1,#mount do
+        spr_c('hill',mount[i].posx,mount[i].posy,8,4)
+    end
+    for i=1,#grass do
+        spr_c('bush',grass[i],H-32,4,2)
+    end
+    spr_c('cloud',cloud_pos,16,4,4)
+    for i=1,16 do
+        spr_c('ground',(i-1)*16+8-bias%16,H-16,2,2)
+        spr_c('ground',(i-1)*16+8-bias%16,H,2,2)
+    end
+    for i=1,#block do
+        if (i%2==1) then
+            spr_c('brick',block[i].pos,H*0.4,2,2)
+        elseif block[i].frame==0 then
+            spr_c('qmark1',block[i].pos,H*0.4,2,2)
+        elseif block[i].frame==1 or block[i].frame==3 then
+            spr_c('qmark2',block[i].pos,H*0.4,2,2)
+        else
+            spr_c('qmark3',block[i].pos,H*0.4,2,2)
+        end
+    end
+	if on_jump then
+		spr_c('jump',W/2,H-32-(t-on_jump)//20,2,2)
+    elseif (t//300)%2==0 then
+        spr_c('run1',W/2,H-32,2,2)
+    else
+        spr_c('run2',W/2,H-32,2,2)
+    end
+end
 function running_screen(t)
 	-- Button #4 (P1's A button)
 	-- Mapped to keyboard Z by default
-	if btnp(4) then requested_jump=time() end
+	if btnp(4) and not requested_jump then requested_jump=1 end
 
 	cls(12)
-	if not requested_jump then
-		if (t//250)%2 == 0 then
-			spr_c('run1',W/2,H/2,2,2)
-		else
-			spr_c('run2',W/2,H/2,2,2)
+	if on_jump then
+		if t-on_jump>680 then change_scene(2) end
+	elseif t%dur_per_pixel then 
+		bias=bias+1
+		-- move blocks.grass and mountain
+		for i=1,#block do 
+			block[i].pos=block[i].pos-1
+			if block[i].pos<-8 then block[i].pos=280 end
+			if bias%50==0 then block[i].frame=(block[i].frame+1)%4 end
+			if requested_jump==1 and i%2==0 and block[i].pos==120 then
+				on_jump=time()-2000
+			end
 		end
-	else
-		cls(13)
-		if time()-requested_jump>=1000 then
-			requested_jump=nil
-			change_scene(2)
+		if bias%20==0 then
+			cloud_pos=cloud_pos-1
+			if cloud_pos<-16 then cloud_pos=256 end
+		end
+		dump={}
+		for i=1,#grass do
+			grass[i]=grass[i]-1
+			if grass[i]<-16 then dump[#dump+1]=i end 
+		end
+		for i=1,#dump do table.remove(grass,dump[i]) end
+		dump={}
+		for i=1,#mount do
+			mount[i].posx=mount[i].posx-1
+			if mount[i].posx<-32 then dump[#dump+1]=i end
+		end
+		for i=1,#dump do table.remove(mount,dump[i]) end
+		
+		-- add grass and mountain
+		if bias%100==0 then
+			local p=math.random()
+			if p>0.8 then
+				local num=math.random(1,3)
+				for i=1,num do
+					grass[#grass+1]=256+(i-1)*16
+				end
+			end
+		elseif bias%100==50 then
+			local p=math.random()
+			if p>0.8 then
+				local num=math.random(1,8)
+				mount[#mount+1]={posx=256,posy=H-23-num}
+			end
 		end
 	end
+	
+	paint(t)
 end
-
 lottery_outcome=-1
 
 function lottery_screen(t)
