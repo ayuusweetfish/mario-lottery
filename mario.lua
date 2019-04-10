@@ -8,6 +8,7 @@ H=136
 
 n_rounds=4
 cur_round=1
+coin_per_round=3
 
 sprites={
 	run1=0,
@@ -36,6 +37,7 @@ ROUND_INIT_DUR=2000
 
 function change_scene(id)
 	cur_scene=id
+	if id==1 then set() end
 	scene_start=time()
 end
 
@@ -61,17 +63,22 @@ function round_init_screen(t)
 	end
 end
 
-requested_jump=nil
-dur_per_pixel=12
-bias=0
-block={}
-for i=1,6 do 
-	block[i]={pos=W/2+(i-1)*48,frame=0}
+function set()
+	requested_jump=nil
+	dur_per_pixel=12
+	bias=0
+	block={}
+	for i=1,6 do 
+		block[i]={pos=W/2+(i-1)*48,frame=0}
+	end
+	cloud_pos=224
+	grass={}
+	mount={}
+	on_jump=nil
 end
-cloud_pos=224
-grass={}
-mount={}
-onjump=nil
+function coin(t,i)
+	print(tostring(t),0,i*20,7)
+end
 
 function paint(t)
     for i=1,#mount do
@@ -97,7 +104,19 @@ function paint(t)
         end
     end
 	if on_jump then
-		spr_c('jump',W/2,H-32-(t-on_jump)//20,2,2)
+		local x=(t-on_jump)/12
+		local a=0.015
+		x=math.fmod(x,80)
+		if x>25 and x<=50 then x=50-x end
+		local h=a*x*x-(25*a+34/25)*x+H-32
+		if x<50 then
+			spr_c('jump',W/2,h,2,2)
+		else
+			spr_c('run2',W/2,H-32,2,2)
+		end
+		for i=1,coin_per_round do
+			if t-on_jump>960*(i-1)+250 then coin(t-on_jump-250-960*(i-1),i) end
+		end
     elseif (t//300)%2==0 then
         spr_c('run1',W/2,H-32,2,2)
     else
@@ -115,7 +134,8 @@ function running_screen(t)
 
 	cls(12)
 	if on_jump then
-		if t-on_jump>680 then change_scene(2) end
+		if t-on_jump>960*coin_per_round then change_scene(2) end
+
 	elseif t%dur_per_pixel then 
 		bias=bias+1
 		-- move blocks.grass and mountain
@@ -124,7 +144,7 @@ function running_screen(t)
 			if block[i].pos<-8 then block[i].pos=280 end
 			if bias%20==0 then block[i].frame=(block[i].frame+1)%6 end
 			if requested_jump==1 and i%2==0 and block[i].pos==120 then
-				on_jump=time()-2000
+				on_jump=t
 			end
 		end
 		if bias%10==0 then
@@ -189,7 +209,11 @@ function lottery_screen(t)
 	else
 		if btnp(4) then
 			cur_round=cur_round+1
-			change_scene(0)
+			if (cur_round>n_rounds) then 
+				change_scene(3)
+			else
+				change_scene(0)
+			end
 		end
 	end
 	print_c(string.format('%03d',lottery_outcome),
