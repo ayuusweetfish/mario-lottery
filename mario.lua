@@ -48,6 +48,17 @@ function spr_c(id,x,y,w,h,keyc,scale)
 	    scale,0,0,w,h)
 end
 
+function ease_sineabs(x)
+	x = math.sin(x * math.pi / 2)
+	return math.abs(x)
+end
+
+function ease_sinesq(x)
+	x = math.sin(x * math.pi / 2)
+	x = (2 - x) * x
+	return x
+end
+
 function print_c(text,x,y,colour,scale)
 	scale=scale or 1
 	local w=print(text,999,999,colour,true,scale)
@@ -78,8 +89,68 @@ function set()
 	mount={}
 	on_jump=nil
 end
+
+function spr_pix(id, dx, dy)
+	id = id + (dx // 8) + (dy // 8) * 16
+	dx = dx % 8
+	dy = dy % 8
+	local byte = peek(0x4000 + id * 32 + dx // 2 + dy * 4)
+	if dx % 2 == 0 then
+		return byte % 16
+	else
+		return byte // 16
+	end
+end
+
+function spr_cfs(id,x,y,w,h,keyc,xscale,yscale,shadowc)
+	id = sprites[id]
+	w = w * 8
+	h = h * 8
+	x = math.floor(0.5 + x - w * xscale / 2)
+	y = math.floor(0.5 + y - h * yscale / 2)
+	local rw, rh, dx, dy, xx, yy, c, last_opaque
+	rw = math.max(1, math.floor(0.49 + w * xscale))
+	rh = math.max(1, math.floor(0.49 + h * yscale))
+	for dy = 0, rh-1 do
+		last_opaque = -1
+		for dx = 0, rw-1 do
+			x0 = math.floor(0.49 + dx / rw * w)
+			y0 = math.floor(0.49 + dy / rh * h)
+			c = spr_pix(id, x0, y0)
+			if c ~= keyc then
+				pix(x + dx, y + dy, c)
+				last_opaque = 4
+			elseif last_opaque > 0 then
+				last_opaque = last_opaque - 1
+				pix(x + dx, y + dy, shadowc)
+			end
+		end
+		for dx = 0, last_opaque-1 do
+			pix(x + rw + dx, y + dy, shadowc)
+		end
+		if last_opaque == -1 then
+			for dx = 0, 3 do
+				pix(x + rw//2 + dx, y + dy, shadowc)
+			end
+		end
+	end
+end
+
 function coin(t,i)
-	print(tostring(t),0,i*20,7)
+	local s = t >= 700 and 2 or ease_sinesq(t/700)+1
+	local squeeze = ease_sineabs(t/700)
+	spr_cfs('coin',W/2+2,H/2-1,4,4,6,s*squeeze,s,0)
+	if t<=2000 then
+		lottery_outcome=math.random(0,999)
+	elseif t<=3000 then
+		lottery_outcome=
+		  (lottery_outcome-lottery_outcome%100)+
+				math.random(0,99)
+	elseif t<=4000 then
+		lottery_outcome=
+		  (lottery_outcome-lottery_outcome%10)+
+				math.random(0,9)
+	end
 end
 
 function paint(t)
@@ -109,6 +180,7 @@ function paint(t)
 		local x=(t-on_jump)/12
 		local a=0.015
 		x=math.fmod(x,80)
+		if t-on_jump >= 960*coin_per_round then x = 51 end
 		if x>25 and x<=50 then x=50-x end
 		local h=a*x*x-(25*a+34/25)*x+H-32
 		if x<50 then
@@ -136,7 +208,7 @@ function running_screen(t)
 
 	cls(12)
 	if on_jump then
-		if t-on_jump>960*coin_per_round then change_scene(2) end
+		if false then change_scene(2) end
 
 	elseif t%dur_per_pixel then 
 		bias=bias+1
@@ -198,18 +270,8 @@ lottery_outcome=-1
 
 function lottery_screen(t)
 	cls(7)
-	spr_c('coin',W/2+2,H/2-1,4,4,6,2)
-	if t<=2000 then
-		lottery_outcome=math.random(0,999)
-	elseif t<=3000 then
-		lottery_outcome=
-		  (lottery_outcome-lottery_outcome%100)+
-				math.random(0,99)
-	elseif t<=4000 then
-		lottery_outcome=
-		  (lottery_outcome-lottery_outcome%10)+
-				math.random(0,9)
-	else
+	coin(t,1)
+	if t>=4000 then
 		if btnp(4) then
 			cur_round=cur_round+1
 			if (cur_round>n_rounds) then 
