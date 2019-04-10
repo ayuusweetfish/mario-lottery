@@ -34,7 +34,7 @@ cur_scene=0
 -- Time of entering current scene
 scene_start=0
 
-ROUND_INIT_DUR=2000
+ROUND_INIT_DUR=2
 
 function change_scene(id)
 	cur_scene=id
@@ -119,7 +119,7 @@ function spr_cfs(id,x,y,w,h,keyc,xscale,yscale,shadowc)
 			c = spr_pix(id, x0, y0)
 			if c ~= keyc then
 				pix(x + dx, y + dy, c)
-				last_opaque = 4
+				last_opaque = 3
 			elseif last_opaque > 0 then
 				last_opaque = last_opaque - 1
 				pix(x + dx, y + dy, shadowc)
@@ -129,27 +129,34 @@ function spr_cfs(id,x,y,w,h,keyc,xscale,yscale,shadowc)
 			pix(x + rw + dx, y + dy, shadowc)
 		end
 		if last_opaque == -1 then
-			for dx = 0, 3 do
+			for dx = 0, 2 do
 				pix(x + rw//2 + dx, y + dy, shadowc)
 			end
 		end
 	end
 end
 
+coin_pos = {
+	{W*5//10,H*4//10},
+	{W*8//10,H*6//10},
+	{W*2//10,H*6//10}
+}
+
 function coin(t,i)
 	local s = t >= 700 and 2 or ease_sinesq(t/700)+1
-	local squeeze = ease_sineabs(t/700)
-	spr_cfs('coin',W/2+2,H/2-1,4,4,6,s*squeeze,s,0)
-	if t<=2000 then
-		lottery_outcome=math.random(0,999)
-	elseif t<=3000 then
-		lottery_outcome=
-		  (lottery_outcome-lottery_outcome%100)+
-				math.random(0,99)
-	elseif t<=4000 then
-		lottery_outcome=
-		  (lottery_outcome-lottery_outcome%10)+
-				math.random(0,9)
+	local squeeze
+	if t >= 3000 then
+		squeeze = 1
+	else
+		local p = 1 - t/3000
+		squeeze = ease_sineabs(1 - p*p*p*10)
+	end
+
+	local x, y = coin_pos[i][1], coin_pos[i][2]
+	spr_cfs('coin',x,y,4,4,6,s*squeeze,s,0)
+
+	if t >= 3000 then
+		print('223', x-19, y-5, 0, true, 2)
 	end
 end
 
@@ -189,7 +196,9 @@ function paint(t)
 			spr_c('run2',W/2,H-32,2,2)
 		end
 		for i=1,coin_per_round do
-			if t-on_jump>960*(i-1)+250 then coin(t-on_jump-250-960*(i-1),i) end
+			if t-on_jump>960*(i-1)+250 then
+				coin(t-on_jump-250-960*(i-1),coin_per_round-i+1)
+			end
 		end
     elseif (t//300)%2==0 then
         spr_c('run1',W/2,H-32,2,2)
@@ -208,7 +217,14 @@ function running_screen(t)
 
 	cls(12)
 	if on_jump then
-		if false then change_scene(2) end
+		if btnp(4) and t-on_jump >= 960*coin_per_round+3000 then
+			cur_round=cur_round+1
+			if (cur_round>n_rounds) then 
+				change_scene(3)
+			else
+				change_scene(0)
+			end
+		end
 
 	elseif t%dur_per_pixel then 
 		bias=bias+1
@@ -218,6 +234,7 @@ function running_screen(t)
 			if block[i].pos<-8 then block[i].pos=280 end
 			if bias%20==0 then block[i].frame=(block[i].frame+1)%6 end
 			if requested_jump==1 and i%2==0 and block[i].pos==120 then
+				for i=1,#block do block[i].frame=0 end
 				on_jump=t
 			end
 		end
@@ -266,19 +283,12 @@ function running_screen(t)
 	
 	paint(t)
 end
-lottery_outcome=-1
 
 function lottery_screen(t)
 	cls(7)
 	coin(t,1)
 	if t>=4000 then
 		if btnp(4) then
-			cur_round=cur_round+1
-			if (cur_round>n_rounds) then 
-				change_scene(3)
-			else
-				change_scene(0)
-			end
 		end
 	end
 	print_c(string.format('%03d',lottery_outcome),
