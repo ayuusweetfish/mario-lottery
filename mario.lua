@@ -152,7 +152,11 @@ function coin(t,i)
 		squeeze = ease_sineabs(1 - p*p*p*10)
 	end
 
-	local x, y = coin_pos[i][1], coin_pos[i][2]
+	local x0, y0 = W * 0.5, H * 0.4
+	local x1, y1 = coin_pos[i][1], coin_pos[i][2]
+	local rate = ease_sinesq(math.min(1,t/3000))
+	local x = x0 + (x1-x0) * rate
+	local y = y0 + (y1-y0) * rate
 	spr_cfs('coin',x,y,4,4,6,s*squeeze,s,0)
 
 	if t >= 3000 then
@@ -161,6 +165,7 @@ function coin(t,i)
 end
 
 function paint(t)
+	local jump_finished = (on_jump and t-on_jump >= 960*coin_per_round)
     for i=1,#mount do
         spr_c('hill',mount[i].posx,mount[i].posy,8,4)
     end
@@ -176,7 +181,16 @@ function paint(t)
         if (i%2==1) then
             spr_c('brick',block[i].pos,H*0.4,2,2)
         elseif block[i].frame<=1 then
+									if block[i].is_popping then
+										local y = H*0.4
+										local x = math.fmod((t-on_jump)/12, 80)
+										if not jump_finished and x>=25 and x<=35 then
+											y = H * (0.4 - ease_sineabs((x-25)/5) * 0.03)
+										end
+            spr_c('qmark1',block[i].pos,y,2,2)
+									else
             spr_c('qmark1',block[i].pos,H*0.4,2,2)
+									end
         elseif block[i].frame==2 or block[i].frame==5 then
             spr_c('qmark2',block[i].pos,H*0.4,2,2)
         else
@@ -187,7 +201,7 @@ function paint(t)
 		local x=(t-on_jump)/12
 		local a=0.015
 		x=math.fmod(x,80)
-		if t-on_jump >= 960*coin_per_round then x = 51 end
+		if jump_finished then x = 51 end
 		if x>25 and x<=50 then x=50-x end
 		local h=a*x*x-(25*a+34/25)*x+H-32
 		if x<50 then
@@ -234,6 +248,7 @@ function running_screen(t)
 			if block[i].pos<-8 then block[i].pos=280 end
 			if bias%20==0 then block[i].frame=(block[i].frame+1)%6 end
 			if requested_jump==1 and i%2==0 and block[i].pos==120 then
+				block[i].is_popping=true
 				for i=1,#block do block[i].frame=0 end
 				on_jump=t
 			end
