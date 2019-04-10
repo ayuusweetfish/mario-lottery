@@ -88,9 +88,9 @@ function paint(t)
     for i=1,#block do
         if (i%2==1) then
             spr_c('brick',block[i].pos,H*0.4,2,2)
-        elseif block[i].frame==0 then
+        elseif block[i].frame<=1 then
             spr_c('qmark1',block[i].pos,H*0.4,2,2)
-        elseif block[i].frame==1 or block[i].frame==3 then
+        elseif block[i].frame==2 or block[i].frame==5 then
             spr_c('qmark2',block[i].pos,H*0.4,2,2)
         else
             spr_c('qmark3',block[i].pos,H*0.4,2,2)
@@ -104,6 +104,10 @@ function paint(t)
         spr_c('run2',W/2,H-32,2,2)
     end
 end
+
+last_grass=999
+last_mount=999
+
 function running_screen(t)
 	-- Button #4 (P1's A button)
 	-- Mapped to keyboard Z by default
@@ -118,12 +122,12 @@ function running_screen(t)
 		for i=1,#block do 
 			block[i].pos=block[i].pos-1
 			if block[i].pos<-8 then block[i].pos=280 end
-			if bias%50==0 then block[i].frame=(block[i].frame+1)%4 end
+			if bias%20==0 then block[i].frame=(block[i].frame+1)%6 end
 			if requested_jump==1 and i%2==0 and block[i].pos==120 then
 				on_jump=time()-2000
 			end
 		end
-		if bias%20==0 then
+		if bias%10==0 then
 			cloud_pos=cloud_pos-1
 			if cloud_pos<-16 then cloud_pos=256 end
 		end
@@ -135,25 +139,33 @@ function running_screen(t)
 		for i=1,#dump do table.remove(grass,dump[i]) end
 		dump={}
 		for i=1,#mount do
-			mount[i].posx=mount[i].posx-1
+			if bias%2 == 0 then
+				mount[i].posx=mount[i].posx-1
+			end
 			if mount[i].posx<-32 then dump[#dump+1]=i end
 		end
 		for i=1,#dump do table.remove(mount,dump[i]) end
 		
 		-- add grass and mountain
-		if bias%100==0 then
+		if bias%100==1 then
 			local p=math.random()
-			if p>0.8 then
+			if last_grass>=2 or p<0.4 then
 				local num=math.random(1,3)
 				for i=1,num do
 					grass[#grass+1]=256+(i-1)*16
 				end
+				last_grass=0
+			else
+				last_grass=last_grass+1
 			end
-		elseif bias%100==50 then
+		elseif bias%200==50 then
 			local p=math.random()
-			if p>0.8 then
-				local num=math.random(1,8)
-				mount[#mount+1]={posx=256,posy=H-23-num}
+			if last_mount>=5 or p<0.5 then
+				local num=math.random(8,13)
+				mount[#mount+1]={posx=288,posy=H-23-num}
+				last_mount=0
+			else
+				last_mount=last_mount+1
 			end
 		end
 	end
