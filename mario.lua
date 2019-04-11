@@ -175,10 +175,14 @@ digit_value = {100, 1, 10}
 digit_max = {12, 9, 9}
 nums_per_round = (digit_mode and 1 or coin_per_round)
 
+function lottery_draw()
+	return math.random(0, 1200)
+end
+
 for i = 1,nums_per_round*n_rounds do
 	local x, valid
 	repeat
-		x, valid = math.random(1,1200), true
+		x, valid = lottery_draw(), true
 		for j = 1,i-1 do
 			if lottery_outcomes[j] == x then
 				valid = false
@@ -336,6 +340,12 @@ function running_screen(t)
 			else
 				change_scene(0)
 			end
+			return
+		-- Press B button (key Y by default) to
+		-- invalidate current draw result and re-generate
+		elseif btnp(5) and t-on_jump >= 960*coin_per_round+8000 then
+			lottery_outcomes[cur_round] = lottery_draw()
+			change_scene(0)
 			return
 		end
 
