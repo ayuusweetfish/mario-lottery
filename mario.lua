@@ -3,15 +3,26 @@
 -- desc:   Time to clear your Steam wishlist
 -- script: lua
 
+--- Configuration starts here ---
+
+n_rounds=1
+
+digit_mode = true
+digit_delay = {6000, 11000, 7000}
+
+prize_text='- First prize -'
+prize_text_colour=9
+result_xoffset = 1.07
+result_yoffset = 2
+result_txtspeed = 4000
+result_txtscale = 4
+
+--- Configuration ends here ---
+
 W=240
 H=136
-
-n_rounds=5
-cur_round=5
 coin_per_round=3
-
-prize_text='- Third prize -'
-prize_text_colour=10
+cur_round=1
 
 sprites={
 	run1=0,
@@ -160,16 +171,9 @@ coin_pos = {
 }
 
 lottery_outcomes = {}
-digit_mode = true
-digit_delay = {4500, 7500, 4500}
 digit_value = {100, 1, 10}
 digit_max = {12, 9, 9}
 nums_per_round = (digit_mode and 1 or coin_per_round)
-
-result_xoffset = 1
-result_yoffset = 0
-result_txtspeed = 1500
-result_txtscale = 2
 
 for i = 1,nums_per_round*n_rounds do
 	local x, valid
