@@ -425,15 +425,17 @@ function results_screen(t)
 				results_confetti[i] = {
 					x = math.random(0, W), y = -R - math.random() * 96,
 					vx = (math.random() - 0.5) * 20 / 1000,
+					vy = (math.random() - 0.5) * 4 / 1000 + 1 / 125,
+					vang = (math.random() - 0.5) * 0.08 + 1,
 					phase = math.random() * math.pi * 2,
 					c = math.random(7,14)
 				}
 			end
 		end
-		local dphase = tt / 600
 		for i = 1, n_confetti do
+			local dphase = tt / 600 * results_confetti[i].vang
 			local cx = results_confetti[i].x + results_confetti[i].vx * tt
-			local cy = results_confetti[i].y + tt / 100
+			local cy = results_confetti[i].y + results_confetti[i].vy * tt
 			local function draw_with_phase(ph, r, shadow)
 				local angle = math.sin(ph)
 				local x = cx + r * math.sin(angle)
