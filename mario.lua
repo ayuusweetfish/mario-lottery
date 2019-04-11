@@ -255,7 +255,7 @@ function paint(t)
 		for i = 1, #confetti do
 			local x = confetti[i].x + confetti[i].vx * dt
 			local vy = confetti[i].vy
-			local y = confetti[i].y + (vy + 32 * dt) * dt
+			local y = confetti[i].y + (vy + 64 * dt) * dt
 			if y <= H-24 then
 				pix(x, y, confetti[i].c)
 			end
@@ -276,8 +276,8 @@ function running_screen(t)
 				x = math.random(120-5,120+5),
 				y = H-24-math.random(8,16),
 				c = math.random(8,15),
-				vx = math.random()*16-8,
-				vy = -math.random()*4-4,
+				vx = math.random()*48-24,
+				vy = -math.random()*16-16,
 			}
 		end
 	end
