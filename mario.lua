@@ -6,9 +6,12 @@
 W=240
 H=136
 
-n_rounds=4
-cur_round=4
+n_rounds=5
+cur_round=5
 coin_per_round=3
+
+prize_text='- Third prize -'
+prize_text_colour=10
 
 sprites={
 	run1=0,
@@ -392,6 +395,22 @@ function results_screen(t)
 	local dy = math.max(0, (a * phase + b) * phase)
 	local frame = (dy <= 0.01 and 'run2' or 'jump')
 	spr_c(frame, W - 48, H - 32 - dy, 2, 2, 6, 1, 1)
+
+	-- Text
+	print(prize_text, 8, 8, 0, false, 2)
+	print(prize_text, 7, 7, 0, false, 2)
+	print(prize_text, 6, 6, prize_text_colour, false, 2)
+	for i = 1, n_rounds do
+		for j = 1, coin_per_round do
+			local x, y = -16 + 52 * j, 17 + 16 * i
+			local t0 = i * 200 + j * 500
+			local p = math.max(0, math.min(1, (t - t0) / 1000))
+			local dy = H - ease_sinesq(p) * H
+			local s = string.format('%03d', lottery_outcomes[(i-1) * coin_per_round + j])
+			print_c(s, x + 1, y + dy + 1, 0, 2)
+			print_c(s, x, y + dy, 7, 2)
+		end
+	end
 end
 
 function TIC()
