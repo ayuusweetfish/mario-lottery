@@ -142,6 +142,8 @@ coin_pos = {
 	{W*2//10,H*6//10}
 }
 
+local lottery_outcomes = {233, 466, 799}
+
 function coin(t,i)
 	local s = t >= 700 and 2 or ease_sinesq(t/700)+1
 	local squeeze
@@ -159,8 +161,21 @@ function coin(t,i)
 	local y = y0 + (y1-y0) * rate
 	spr_cfs('coin',x,y,4,4,6,s*squeeze,s,0)
 
+	local w = 12
 	if t >= 3000 then
-		print('223', x-19, y-5, 0, true, 2)
+		num = lottery_outcomes[#lottery_outcomes-i+1]
+		if t < 4500 then
+			print(string.format('%03d',math.random(0,999)),x-19,y-5,4,true,2)
+		elseif t < 6000 then
+			print(string.format('%01d',num//100),x-19,y-5,0,true,2)
+			print(string.format('%02d',math.random(0,99)),x-19+w,y-5,4,true,2)
+		elseif t < 8000 then
+			print(string.format('%02d',num//10),x-19,y-5,0,true,2)
+			print(string.format('%01d',math.random(0,9)),x-19+w*2,y-5,4,true,2)
+		else
+			print(string.format('%03d',num),x-19,y-5,0,true,2)
+		end
+		--print(string.format('%03d',num), x-19, y-5, 10, true, 2)
 	end
 end
 
@@ -231,7 +246,7 @@ function running_screen(t)
 
 	cls(12)
 	if on_jump then
-		if btnp(4) and t-on_jump >= 960*coin_per_round+3000 then
+		if btnp(4) and t-on_jump >= 960*coin_per_round+8000 then
 			cur_round=cur_round+1
 			if (cur_round>n_rounds) then 
 				change_scene(3)
