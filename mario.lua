@@ -46,6 +46,7 @@ ROUND_INIT_DUR=2
 function change_scene(id)
 	cur_scene=id
 	if id==1 then set() end
+	if id==2 then results_confetti=nil end
 	scene_start=time()
 	TIC()
 end
@@ -361,6 +362,9 @@ function running_screen(t)
 	paint(t)
 end
 
+results_confetti = nil
+n_confetti = 60
+
 function results_screen(t)
 	if t <= 500 then
 		cls(0)
@@ -408,7 +412,48 @@ function results_screen(t)
 			local dy = H - ease_sinesq(p) * H
 			local s = string.format('%03d', lottery_outcomes[(i-1) * coin_per_round + j])
 			print_c(s, x + 1, y + dy + 1, 0, 2)
-			print_c(s, x, y + dy, 7, 2)
+			print_c(s, x, y + dy, 7 + (i + j) % 2 * 8, 2)
+		end
+	end
+
+	local R = 8
+	local tt = t - 4000
+	if tt >= 0 then
+		if not results_confetti then
+			results_confetti = {}
+			for i = 1, n_confetti do
+				results_confetti[i] = {
+					x = math.random(0, W), y = -R - math.random() * 96,
+					vx = (math.random() - 0.5) * 20 / 1000,
+					phase = math.random() * math.pi * 2,
+					c = math.random(7,14)
+				}
+			end
+		end
+		local dphase = tt / 600
+		for i = 1, n_confetti do
+			local cx = results_confetti[i].x + results_confetti[i].vx * tt
+			local cy = results_confetti[i].y + tt / 100
+			local function draw_with_phase(ph, r, shadow)
+				local angle = math.sin(ph)
+				local x = cx + r * math.sin(angle)
+				local y = cy + r * math.cos(angle)
+				if shadow then x, y = x + 1, y + 1 end
+				if y <= H - 24 then
+					pix(x, y, shadow and 5 or results_confetti[i].c)
+				end
+			end
+			local p = results_confetti[i].phase + dphase
+			draw_with_phase(p, R, true)
+			draw_with_phase(p+0.1, R-0.1, true)
+			draw_with_phase(p+0.2, R-0.2, true)
+			draw_with_phase(p+0.3, R-0.3, true)
+			draw_with_phase(p+0.4, R-0.4, true)
+			draw_with_phase(p, R)
+			draw_with_phase(p+0.1, R-0.1)
+			draw_with_phase(p+0.2, R-0.2)
+			draw_with_phase(p+0.3, R-0.3)
+			draw_with_phase(p+0.4, R-0.4)
 		end
 	end
 end
@@ -468,7 +513,7 @@ end
 -- 057:4000222040222220002222204222222040222220002220202222222000000000
 -- 058:ffff4444ffff4444ffff4444ffff4444fff00000ff000000f000000000000000
 -- 059:4444000044440000444400004444000000004000000004000000004000000004
--- 060:666ee666666ee666666ee666666ee666666ee666666ee666666ee666666ee666
+-- 060:666e2666666e2666666e2666666e2666666e2666666e2666666e2666666e2666
 -- 061:6666666666666666666666666666666666666666666666666666666666666666
 -- 062:7772227767277777667777776667777766667777666667776666667766666667
 -- 064:6666666666666666666666666666666666666666666666666666666666666666
