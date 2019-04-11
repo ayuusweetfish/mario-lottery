@@ -5,9 +5,18 @@
 
 --- Configuration starts here ---
 
-n_rounds=1
+n_rounds=5
 
 digit_mode = true
+digit_delay = {4500, 7500, 5000}
+
+prize_text='- Second prize -'
+prize_text_colour=10
+result_xoffset = 1
+result_yoffset = 2
+result_txtspeed = 2500
+result_txtscale = 2
+--[[
 digit_delay = {6000, 11000, 7000}
 
 prize_text='- First prize -'
@@ -16,6 +25,7 @@ result_xoffset = 1.07
 result_yoffset = 2
 result_txtspeed = 4000
 result_txtscale = 4
+]]
 
 --- Configuration ends here ---
 
@@ -52,7 +62,7 @@ cur_scene=0
 -- Time of entering current scene
 scene_start=0
 
-ROUND_INIT_DUR=2
+ROUND_INIT_DUR=2000
 
 function change_scene(id)
 	cur_scene=id
@@ -85,11 +95,15 @@ function print_c(text,x,y,colour,scale)
 	print(text,x-w//2,y-(6*scale)//2,colour,true,scale)
 end
 
+invalidated = false
 function round_init_screen(t)
 	cls(0)
 	spr_c('mushroom',W*0.382,H*0.5,2,2)
 	print_c('x',W/2,H/2,7,2)
 	print_c(tostring(n_rounds-cur_round+1),W*0.618,H/2,7,2)
+	if invalidated then
+		print_c('1 UP!',W/2,H*0.65,11,2)
+	end
 
 	if t>=ROUND_INIT_DUR then
 		change_scene(1)
@@ -338,6 +352,7 @@ function running_screen(t)
 			if (cur_round>n_rounds) then 
 				change_scene(2)
 			else
+				invalidated = false
 				change_scene(0)
 			end
 			return
@@ -345,6 +360,7 @@ function running_screen(t)
 		-- invalidate current draw result and re-generate
 		elseif btnp(5) and t-on_jump >= 960*coin_per_round+8000 then
 			lottery_outcomes[cur_round] = lottery_draw()
+			invalidated = true
 			change_scene(0)
 			return
 		end
