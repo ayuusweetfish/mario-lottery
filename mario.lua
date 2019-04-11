@@ -37,7 +37,7 @@ sprites={
 -- 1: running
 -- 2: results
 -- Others TODO
-cur_scene=2
+cur_scene=0
 -- Time of entering current scene
 scene_start=0
 
@@ -146,6 +146,13 @@ function spr_cfs(id,x,y,w,h,keyc,xscale,yscale,shadowc)
 	end
 end
 
+function format_num(x)
+	if x < 1000 then
+		return string.format(' %03d', x)
+	else return tostring(x)
+	end
+end
+
 coin_pos = {
 	{W*2//10,H*6//10},
 	{W*8//10,H*6//10},
@@ -157,7 +164,7 @@ lottery_outcomes = {}
 for i = 1,coin_per_round*n_rounds do
 	local x, valid
 	repeat
-		x, valid = math.random(0,999), true
+		x, valid = math.random(1,1200), true
 		for j = 1,i-1 do
 			if lottery_outcomes[j] == x then
 				valid = false
@@ -165,6 +172,7 @@ for i = 1,coin_per_round*n_rounds do
 			end
 		end
 	until valid
+	x = (i == 15 and 987 or 1200)
 	lottery_outcomes[i] = x
 end
 
@@ -188,16 +196,20 @@ function coin(t,i)
 	local w = 12
 	if t >= 3000 then
 		num = lottery_outcomes[coin_per_round*(cur_round-1)+i]
+		x1 = (num >= 1000 and x-19-w//2 or x-19)
+		x2 = (num >= 1000 and x1+w*2 or x1+w)
 		if t < 4500 then
-			print(string.format('%03d',math.random(0,999)),x-19,y-5,4,true,2)
+			num = math.random(0,1200)
+			x1 = (num >= 1000 and x-19-w//2 or x-19)
+			print(string.format('%03d',num),x1,y-5,4,true,2)
 		elseif t < 6000 then
-			print(string.format('%01d',num//100),x-19,y-5,0,true,2)
-			print(string.format('%02d',math.random(0,99)),x-19+w,y-5,4,true,2)
+			print(string.format('%01d',num//100),x1,y-5,0,true,2)
+			print(string.format('%02d',math.random(0,99)),x2,y-5,4,true,2)
 		elseif t < 8000 then
-			print(string.format('%02d',num//10),x-19,y-5,0,true,2)
-			print(string.format('%01d',math.random(0,9)),x-19+w*2,y-5,4,true,2)
+			print(string.format('%02d',num//10),x1,y-5,0,true,2)
+			print(string.format('%01d',math.random(0,9)),x2+w,y-5,4,true,2)
 		else
-			print(string.format('%03d',num),x-19,y-5,0,true,2)
+			print(string.format('%03d',num),x1,y-5,0,true,2)
 		end
 	end
 end
@@ -406,11 +418,11 @@ function results_screen(t)
 	print(prize_text, 6, 6, prize_text_colour, false, 2)
 	for i = 1, n_rounds do
 		for j = 1, coin_per_round do
-			local x, y = -16 + 52 * j, 17 + 16 * i
+			local x, y = -22 + 56 * j, 17 + 16 * i
 			local t0 = i * 200 + j * 500
 			local p = math.max(0, math.min(1, (t - t0) / 1000))
 			local dy = H - ease_sinesq(p) * H
-			local s = string.format('%03d', lottery_outcomes[(i-1) * coin_per_round + j])
+			local s = format_num(lottery_outcomes[(i-1) * coin_per_round + j])
 			print_c(s, x + 1, y + dy + 1, 0, 2)
 			print_c(s, x, y + dy, 7 + (i + j) % 2 * 8, 2)
 		end
@@ -586,14 +598,14 @@ end
 -- 129:6666999969999999999999999999944499944999944999994999999999999999
 -- 130:9999666699999996999999994449999999944999999994499999999499999999
 -- 131:6666666666666666966666669966666699966666999966669999966649999966
--- 144:6699994969999499699994996999499999994994999499499994994999949949
+-- 144:6699994969999499699994996999499999994999999499999994999999949999
 -- 145:9999999999999999999999999999999999999999999999999999999999999999
 -- 146:9999999999999999999999999999999999999999999999999999999999999999
--- 147:9499996699499996994999969992999649929999949929999499299994992999
--- 160:9994994999949949999499499999499469994999699994996999949966999949
+-- 147:9499996699499996994999969992999699929999999929999999299999992999
+-- 160:9994999999949999999499999999499969994999699994996999949966999949
 -- 161:9999999999999999999999999999999999999999999999999999999999999999
 -- 162:9999999999999999999999999999999999999999999999999999999999999999
--- 163:9499299994992999949929994990499999909996990499969909999690499966
+-- 163:9999299999992999999929999990499999909996990499969909999690499966
 -- 176:6699999466699999666699996666699966666699666666696666666666666666
 -- 177:9999999949999999944999999990099999999000999999996999999966669999
 -- 178:9999999999999990999990049990049900049999999999999999999699996666
