@@ -187,7 +187,7 @@ function paint(t)
     for i=1,#grass do
         spr_c('bush',grass[i],H-32,4,2)
     end
-    spr_c('cloud',cloud_pos,16,4,4)
+    spr_c('cloud',cloud_pos,24,4,4)
     for i=1,16 do
         spr_c('ground',(i-1)*16+8-bias%16,H-16,2,2)
         spr_c('ground',(i-1)*16+8-bias%16,H,2,2)
@@ -268,7 +268,7 @@ function running_screen(t)
 				on_jump=t
 			end
 		end
-		if bias%10==0 then
+		if bias%8==0 then
 			cloud_pos=cloud_pos-1
 			if cloud_pos<-16 then cloud_pos=256 end
 		end
@@ -302,7 +302,7 @@ function running_screen(t)
 		elseif bias%200==50 then
 			local p=math.random()
 			if last_mount>=5 or p<0.5 then
-				local num=math.random(8,13)
+				local num=math.random(4,12)
 				mount[#mount+1]={posx=288,posy=H-23-num}
 				last_mount=0
 			else
