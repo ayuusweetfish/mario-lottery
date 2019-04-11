@@ -160,8 +160,18 @@ coin_pos = {
 }
 
 lottery_outcomes = {}
+digit_mode = true
+digit_delay = {4500, 7500, 4500}
+digit_value = {100, 1, 10}
+digit_max = {12, 9, 9}
+nums_per_round = (digit_mode and 1 or coin_per_round)
 
-for i = 1,coin_per_round*n_rounds do
+result_xoffset = 1
+result_yoffset = 0
+result_txtspeed = 1500
+result_txtscale = 2
+
+for i = 1,nums_per_round*n_rounds do
 	local x, valid
 	repeat
 		x, valid = math.random(1,1200), true
@@ -172,7 +182,6 @@ for i = 1,coin_per_round*n_rounds do
 			end
 		end
 	until valid
-	x = (i == 15 and 987 or 1200)
 	lottery_outcomes[i] = x
 end
 
@@ -195,21 +204,32 @@ function coin(t,i)
 
 	local w = 12
 	if t >= 3000 then
-		num = lottery_outcomes[coin_per_round*(cur_round-1)+i]
-		x1 = (num >= 1000 and x-19-w//2 or x-19)
-		x2 = (num >= 1000 and x1+w*2 or x1+w)
-		if t < 4500 then
-			num = math.random(0,1200)
+		if not digit_mode then
+			local num = lottery_outcomes[coin_per_round*(cur_round-1)+i]
 			x1 = (num >= 1000 and x-19-w//2 or x-19)
-			print(string.format('%03d',num),x1,y-5,4,true,2)
-		elseif t < 6000 then
-			print(string.format('%01d',num//100),x1,y-5,0,true,2)
-			print(string.format('%02d',math.random(0,99)),x2,y-5,4,true,2)
-		elseif t < 8000 then
-			print(string.format('%02d',num//10),x1,y-5,0,true,2)
-			print(string.format('%01d',math.random(0,9)),x2+w,y-5,4,true,2)
+			x2 = (num >= 1000 and x1+w*2 or x1+w)
+			if t < 4500 then
+				num = math.random(0,1200)
+				x1 = (num >= 1000 and x-19-w//2 or x-19)
+				print(string.format('%03d',num),x1,y-5,4,true,2)
+			elseif t < 6000 then
+				print(string.format('%01d',num//100),x1,y-5,0,true,2)
+				print(string.format('%02d',math.random(0,99)),x2,y-5,4,true,2)
+			elseif t < 8000 then
+				print(string.format('%02d',num//10),x1,y-5,0,true,2)
+				print(string.format('%01d',math.random(0,9)),x2+w,y-5,4,true,2)
+			else
+				print(string.format('%03d',num),x1,y-5,0,true,2)
+			end
 		else
-			print(string.format('%03d',num),x1,y-5,0,true,2)
+			if t < digit_delay[i] then
+				local num = math.random(0, digit_max[i])
+				print_c(tostring(num),x-3,y+1,4,3)
+			else
+				local w = digit_value[i]
+				local num = lottery_outcomes[cur_round] // w % (digit_max[i] + 1)
+				print_c(tostring(num),x-3,y+1,0,3)
+			end
 		end
 	end
 end
@@ -417,14 +437,15 @@ function results_screen(t)
 	print(prize_text, 7, 7, 0, false, 2)
 	print(prize_text, 6, 6, prize_text_colour, false, 2)
 	for i = 1, n_rounds do
-		for j = 1, coin_per_round do
-			local x, y = -22 + 56 * j, 17 + 16 * i
+		for j = 1, nums_per_round do
+			local x = -22 + 56 * (j + result_xoffset)
+			local y =  17 + 16 * (i + result_yoffset)
 			local t0 = i * 200 + j * 500
-			local p = math.max(0, math.min(1, (t - t0) / 1000))
+			local p = math.max(0, math.min(1, (t - t0) / result_txtspeed))
 			local dy = H - ease_sinesq(p) * H
-			local s = format_num(lottery_outcomes[(i-1) * coin_per_round + j])
-			print_c(s, x + 1, y + dy + 1, 0, 2)
-			print_c(s, x, y + dy, 7 + (i + j) % 2 * 8, 2)
+			local s = format_num(lottery_outcomes[(i-1) * nums_per_round + j])
+			print_c(s, x + 1, y + dy + 1, 0, result_txtscale)
+			print_c(s, x, y + dy, 7 + (i + j) % 2 * 8, result_txtscale)
 		end
 	end
 
