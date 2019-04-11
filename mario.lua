@@ -7,7 +7,7 @@ W=240
 H=136
 
 n_rounds=4
-cur_round=1
+cur_round=3
 coin_per_round=3
 
 sprites={
@@ -137,12 +137,26 @@ function spr_cfs(id,x,y,w,h,keyc,xscale,yscale,shadowc)
 end
 
 coin_pos = {
-	{W*5//10,H*4//10},
+	{W*2//10,H*6//10},
 	{W*8//10,H*6//10},
-	{W*2//10,H*6//10}
+	{W*5//10,H*4//10}
 }
 
-local lottery_outcomes = {233, 466, 799}
+lottery_outcomes = {}
+
+for i = 1,coin_per_round*n_rounds do
+	local x, valid
+	repeat
+		x, valid = math.random(0,999), true
+		for j = 1,i-1 do
+			if lottery_outcomes[j] == x then
+				valid = false
+				break
+			end
+		end
+	until valid
+	lottery_outcomes[i] = x
+end
 
 function coin(t,i)
 	local s = t >= 700 and 2 or ease_sinesq(t/700)+1
@@ -163,7 +177,7 @@ function coin(t,i)
 
 	local w = 12
 	if t >= 3000 then
-		num = lottery_outcomes[#lottery_outcomes-i+1]
+		num = lottery_outcomes[coin_per_round*(cur_round-1)+i]
 		if t < 4500 then
 			print(string.format('%03d',math.random(0,999)),x-19,y-5,4,true,2)
 		elseif t < 6000 then
@@ -175,7 +189,6 @@ function coin(t,i)
 		else
 			print(string.format('%03d',num),x-19,y-5,0,true,2)
 		end
-		--print(string.format('%03d',num), x-19, y-5, 10, true, 2)
 	end
 end
 
@@ -226,7 +239,7 @@ function paint(t)
 		end
 		for i=1,coin_per_round do
 			if t-on_jump>960*(i-1)+250 then
-				coin(t-on_jump-250-960*(i-1),coin_per_round-i+1)
+				coin(t-on_jump-250-960*(i-1),i)
 			end
 		end
     elseif (t//300)%2==0 then
