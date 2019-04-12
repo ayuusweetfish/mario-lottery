@@ -161,6 +161,9 @@ function set()
 	mount={}
 	on_jump=nil
 	on_reset=nil
+	coins_state={}
+	coins_rolling=0
+	roll_effect_playing=0
 end
 
 function spr_pix(id, dx, dy)
@@ -252,6 +255,20 @@ end
 lottery_drawall()
 
 function coin(t,i)
+	if coins_state[i] == nil then
+		coins_state[i] = 1
+		sfx(1, 72)
+	elseif t >= 3000 and coins_state[i] == 1 then
+		coins_state[i] = 2
+		coins_rolling = coins_rolling + 1
+	end
+	local function mark_stopped_rolling()
+		if coins_state[i] == 2 then
+			coins_state[i] = 3
+			coins_rolling = coins_rolling - 1
+		end
+	end
+
 	local s = t >= 700 and 2 or ease_sinesq(t/700)+1
 	local squeeze
 	if t >= 3000 then
@@ -286,6 +303,7 @@ function coin(t,i)
 				print(string.format('%01d',math.random(0,9)),x2+w,y-5,4,true,2)
 			else
 				print(string.format('%03d',num),x1,y-5,0,true,2)
+				mark_stopped_rolling()
 			end
 		else
 			if t < digit_delay[i] then
@@ -295,6 +313,7 @@ function coin(t,i)
 				local w = digit_value[i]
 				local num = lottery_outcomes[cur_round] // w % (digit_max[i] + 1)
 				print_c(tostring(num),x-3,y+1,0,3)
+				mark_stopped_rolling()
 			end
 		end
 	end
@@ -367,6 +386,14 @@ function paint(t)
 				pix(x, y, confetti[i].c)
 			end
 		end
+	end
+
+	if coins_rolling > 0 and roll_effect_playing == 0 then
+		roll_effect_playing = 1
+		sfx(0, 48, -1, 0, 10)
+	elseif coins_rolling == 0 and roll_effect_playing == 1 then
+		roll_effect_playing = 2
+		sfx(2, 72)
 	end
 end
 
@@ -856,13 +883,16 @@ end
 -- </TILES>
 
 -- <WAVES>
--- 000:00000000ffffffff00000000ffffffff
--- 001:0123456789abcdeffedcba9876543210
--- 002:0123456789abcdef0123456789abcdef
+-- 000:5310000000000006aceffffffffffff9
+-- 001:00112345efffffffffeeeeeddddcccba
+-- 002:0029ffeeeeeeeeedddddcccccccbbba9
+-- 003:02456789abcddeefffdb976543211000
 -- </WAVES>
 
 -- <SFX>
--- 000:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000304000000000
+-- 000:80007040b050e070d020f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000400000050500
+-- 001:00000000000000000050005000501050205030504050505060508050a050b050b050c050c050c050d050d050e050e050e050e050f050f050f050f050600000000000
+-- 002:0040004000400040004000000000000000000040004000400040004000000000000000000000000060006000e000e000f000f000f000f000f000f000600000000000
 -- </SFX>
 
 -- <PALETTE>
