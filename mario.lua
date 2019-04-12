@@ -58,7 +58,7 @@ sprites={
 -- 1: running
 -- 2: results
 -- Others TODO
-cur_scene=0
+cur_scene=2
 -- Time of entering current scene
 scene_start=0
 
@@ -436,6 +436,7 @@ end
 
 results_confetti = nil
 n_confetti = 60
+confetti_colours = {7, 9, 10, 11, 12, 14, 15}
 
 function results_screen(t)
 	if t <= 500 then
@@ -501,7 +502,8 @@ function results_screen(t)
 					vy = (math.random() - 0.5) * 4 / 1000 + 1 / 125,
 					vang = (math.random() - 0.5) * 0.08 + 1,
 					phase = math.random() * math.pi * 2,
-					c = math.random(7,14)
+					amp = (math.random() - 0.5) * 0.2 + 0.9,
+					c = confetti_colours[math.random(1,#confetti_colours)]
 				}
 			end
 		end
@@ -509,8 +511,13 @@ function results_screen(t)
 			local dphase = tt / 600 * results_confetti[i].vang
 			local cx = results_confetti[i].x + results_confetti[i].vx * tt
 			local cy = results_confetti[i].y + results_confetti[i].vy * tt
+			if cy > H - 24 - R + 5 then
+				local dy = H + R + 5
+				results_confetti[i].y = results_confetti[i].y - dy
+				cy = cy - dy
+			end
 			local function draw_with_phase(ph, r, shadow)
-				local angle = math.sin(ph)
+				local angle = math.sin(ph) * results_confetti[i].amp
 				local x = cx + r * math.sin(angle)
 				local y = cy + r * math.cos(angle)
 				if shadow then x, y = x + 1, y + 1 end
