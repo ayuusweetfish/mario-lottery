@@ -353,7 +353,7 @@ function running_screen(t)
 	if on_jump then
 		if btnp(4) and t-on_jump >= 960*coin_per_round+8000 then
 			if (cur_round==n_rounds) then
-				on_reset=t
+				if not on_reset then on_reset=t end
 			else
 				cur_round=cur_round+1
 				invalidated = false
