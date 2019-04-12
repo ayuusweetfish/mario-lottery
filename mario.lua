@@ -5,7 +5,24 @@
 
 --- Configuration starts here ---
 
-landing_bgcolour=1
+prize_level = 3
+
+function reload_config()
+
+if prize_level == 3 then
+mode_text='Lottery Draw - Third Prize'
+n_rounds=5
+
+digit_mode = false
+
+prize_text='- Third prize -'
+prize_text_colour=12
+result_xoffset = 0
+result_yoffset = 0
+result_txtspeed = 1500
+result_txtscale = 2
+
+elseif prize_level == 2 then
 mode_text='Lottery Draw - Second Prize'
 n_rounds=5
 
@@ -13,12 +30,17 @@ digit_mode = true
 digit_delay = {4500, 7500, 5000}
 
 prize_text='- Second prize -'
-prize_text_colour=9
+prize_text_colour=10
 result_xoffset = 1
 result_yoffset = 0
 result_txtspeed = 2500
 result_txtscale = 2
---[[
+
+elseif prize_level == 1 then
+mode_text='Lottery Draw - First Prize'
+n_rounds=1
+
+digit_mode = true
 digit_delay = {6000, 11000, 7000}
 
 prize_text='- First prize -'
@@ -27,7 +49,13 @@ result_xoffset = 1.07
 result_yoffset = 2
 result_txtspeed = 4000
 result_txtscale = 4
-]]
+
+end
+end
+
+reload_config()
+
+landing_bgcolour=1
 
 --- Configuration ends here ---
 
@@ -64,7 +92,6 @@ sprites={
 -- 1: round init
 -- 2: running
 -- 3: results
--- Others TODO
 cur_scene=0
 -- Time of entering current scene
 scene_start=0
@@ -187,33 +214,39 @@ function format_num(x)
 end
 
 coin_pos = {
-	{W*2//10,H*6//10},
-	{W*8//10,H*6//10},
-	{W*5//10,H*4//10}
+	{W*2//10,H*11//20},
+	{W*8//10,H*11//20},
+	{W*5//10,H*7//20}
 }
 
-lottery_outcomes = {}
+lottery_outcomes = nil
 digit_value = {100, 1, 10}
 digit_max = {12, 9, 9}
-nums_per_round = (digit_mode and 1 or coin_per_round)
+nums_per_round = nil
 
 function lottery_draw()
 	return math.random(0, 1200)
 end
 
-for i = 1,nums_per_round*n_rounds do
-	local x, valid
-	repeat
-		x, valid = lottery_draw(), true
-		for j = 1,i-1 do
-			if lottery_outcomes[j] == x then
-				valid = false
-				break
+function lottery_drawall()
+	nums_per_round = (digit_mode and 1 or coin_per_round)
+	lottery_outcomes = {}
+	for i = 1,nums_per_round*n_rounds do
+		local x, valid
+		repeat
+			x, valid = lottery_draw(), true
+			for j = 1,i-1 do
+				if lottery_outcomes[j] == x then
+					valid = false
+					break
+				end
 			end
-		end
-	until valid
-	lottery_outcomes[i] = x
+		until valid
+		lottery_outcomes[i] = x
+	end
 end
+
+lottery_drawall()
 
 function coin(t,i)
 	local s = t >= 700 and 2 or ease_sinesq(t/700)+1
@@ -364,7 +397,7 @@ function running_screen(t)
 				change_scene(1)
 				return
 			end
-		-- Press B button (key Y by default) to
+		-- Press B button (key Z by default) to
 		-- invalidate current draw result and re-generate
 		elseif btnp(5) and t-on_jump >= 960*coin_per_round+8000 then
 			lottery_outcomes[cur_round] = lottery_draw()
@@ -552,6 +585,13 @@ function results_screen(t)
 end
 
 function landing_screen(t)
+	-- Button B to change prize level
+	if btnp(5) then
+		prize_level = (prize_level + 1) % 3 + 1
+		reload_config()
+		lottery_drawall()
+	end
+
 	cls(landing_bgcolour)
 	draw_ground()
 
