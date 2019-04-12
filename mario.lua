@@ -13,7 +13,7 @@ digit_delay = {4500, 7500, 5000}
 prize_text='- Second prize -'
 prize_text_colour=10
 result_xoffset = 1
-result_yoffset = 2
+result_yoffset = 0
 result_txtspeed = 2500
 result_txtscale = 2
 --[[
@@ -32,7 +32,7 @@ result_txtscale = 4
 W=240
 H=136
 coin_per_round=3
-cur_round=1
+cur_round=5
 
 sprites={
 	run1=0,
@@ -123,6 +123,7 @@ function set()
 	grass={}
 	mount={}
 	on_jump=nil
+	on_reset=nil
 end
 
 function spr_pix(id, dx, dy)
@@ -348,14 +349,14 @@ function running_screen(t)
 	cls(12)
 	if on_jump then
 		if btnp(4) and t-on_jump >= 960*coin_per_round+8000 then
-			cur_round=cur_round+1
-			if (cur_round>n_rounds) then 
-				change_scene(2)
+			if (cur_round==n_rounds) then
+				on_reset=t
 			else
+				cur_round=cur_round+1
 				invalidated = false
 				change_scene(0)
+				return
 			end
-			return
 		-- Press B button (key Y by default) to
 		-- invalidate current draw result and re-generate
 		elseif btnp(5) and t-on_jump >= 960*coin_per_round+8000 then
@@ -422,6 +423,15 @@ function running_screen(t)
 	end
 	
 	paint(t)
+
+	if on_reset then
+		local p = (t-on_reset) / 1000
+		if p >= 1 then
+			change_scene(2)
+		else
+			rect(0, 0, W, H * p, 0)
+		end
+	end
 end
 
 results_confetti = nil
