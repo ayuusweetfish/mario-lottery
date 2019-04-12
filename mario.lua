@@ -19,12 +19,13 @@ prize_text='- Third prize -'
 prize_text_colour=12
 result_xoffset = 0
 result_yoffset = 0
+result_ystep = 1
 result_txtspeed = 1500
 result_txtscale = 2
 
 elseif prize_level == 2 then
 mode_text='Lottery Draw - Second Prize'
-n_rounds=5
+n_rounds=3
 
 digit_mode = true
 digit_delay = {4500, 7500, 5000}
@@ -33,8 +34,9 @@ prize_text='- Second prize -'
 prize_text_colour=10
 result_xoffset = 1
 result_yoffset = 0
+result_ystep = 1.5
 result_txtspeed = 2500
-result_txtscale = 2
+result_txtscale = 3
 
 elseif prize_level == 1 then
 mode_text='Lottery Draw - First Prize'
@@ -47,6 +49,7 @@ prize_text='- First prize -'
 prize_text_colour=9
 result_xoffset = 1.07
 result_yoffset = 2
+result_ystep = 1
 result_txtspeed = 4000
 result_txtscale = 4
 
@@ -527,7 +530,7 @@ function results_screen(t)
 	for i = 1, n_rounds do
 		for j = 1, nums_per_round do
 			local x = -22 + 56 * (j + result_xoffset)
-			local y =  17 + 16 * (i + result_yoffset)
+			local y =  17 + 16 * (i + result_yoffset) * result_ystep
 			local t0 = i * 200 + j * 500
 			local p = math.max(0, math.min(1, (t - t0) / result_txtspeed))
 			local dy = H - ease_sinesq(p) * H
@@ -830,7 +833,7 @@ end
 -- 225:cccccdddccccc111cccccccccc21cccccc81cccccc81cccccc81cccccccccccc
 -- 226:11dddd1111111111cccccd11cccccd11ccccc81188ccc81111ccc811ccccc811
 -- 227:111ccc11111ccc11111821111111111111111111111111111111111811111147
--- 228:cccccc81cccccc811ddddd111111111111111111888888178470778847707778
+-- 228:cccccc81cccccc811ddddd111111111118888111888888178470778847707778
 -- 229:ccc8111cccc8111c1dd8111c1111111111111111111111111111111111111111
 -- 230:cccccccccccc6222cccccccc286ccccc111ccccc111ccc8c111ccccc111ccccc
 -- 231:cdccc88c2cccc81cccccccccccccccccccccccccccc555ccccd494d8cd898895
