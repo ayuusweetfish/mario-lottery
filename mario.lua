@@ -54,11 +54,12 @@ sprites={
 	coin=128
 }
 
--- 0: round init
--- 1: running
--- 2: results
+-- 0: landing screen
+-- 1: round init
+-- 2: running
+-- 3: results
 -- Others TODO
-cur_scene=2
+cur_scene=0
 -- Time of entering current scene
 scene_start=0
 
@@ -66,8 +67,8 @@ ROUND_INIT_DUR=2000
 
 function change_scene(id)
 	cur_scene=id
-	if id==1 then set() end
-	if id==2 then results_confetti=nil end
+	if id==2 then set() end
+	if id==3 then results_confetti=nil end
 	scene_start=time()
 	TIC()
 end
@@ -106,7 +107,7 @@ function round_init_screen(t)
 	end
 
 	if t>=ROUND_INIT_DUR then
-		change_scene(1)
+		change_scene(2)
 	end
 end
 
@@ -354,7 +355,7 @@ function running_screen(t)
 			else
 				cur_round=cur_round+1
 				invalidated = false
-				change_scene(0)
+				change_scene(1)
 				return
 			end
 		-- Press B button (key Y by default) to
@@ -362,7 +363,7 @@ function running_screen(t)
 		elseif btnp(5) and t-on_jump >= 960*coin_per_round+8000 then
 			lottery_outcomes[cur_round] = lottery_draw()
 			invalidated = true
-			change_scene(0)
+			change_scene(1)
 			return
 		end
 
@@ -427,7 +428,7 @@ function running_screen(t)
 	if on_reset then
 		local p = (t-on_reset) / 1000
 		if p >= 1 then
-			change_scene(2)
+			change_scene(3)
 		else
 			rect(0, 0, W, H * p, 0)
 		end
@@ -540,13 +541,20 @@ function results_screen(t)
 	end
 end
 
+function landing_screen(t)
+	cls(12)
+	if btnp(4) then change_scene(1) end
+end
+
 function TIC()
 	local t=time()-scene_start
 	if cur_scene == 0 then
-		round_init_screen(t)
+		landing_screen(t)
 	elseif cur_scene == 1 then
-		running_screen(t)
+		round_init_screen(t)
 	elseif cur_scene == 2 then
+		running_screen(t)
+	elseif cur_scene == 3 then
 		results_screen(t)
 	end
 end
