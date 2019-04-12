@@ -369,8 +369,15 @@ end
 
 last_grass=999
 last_mount=999
+last_cloud_mov=0
 
 function running_screen(t)
+	if t >= last_cloud_mov + 200 then
+		last_cloud_mov = t
+		cloud_pos=cloud_pos-1
+		if cloud_pos<-16 then cloud_pos=256 end
+	end
+
 	-- Button #4 (P1's A button)
 	-- Mapped to keyboard Z by default
 	if btnp(4) and not requested_jump then
@@ -418,10 +425,6 @@ function running_screen(t)
 				for i=1,#block do block[i].frame=0 end
 				on_jump=t
 			end
-		end
-		if bias%8==0 then
-			cloud_pos=cloud_pos-1
-			if cloud_pos<-16 then cloud_pos=256 end
 		end
 		dump={}
 		for i=1,#grass do
